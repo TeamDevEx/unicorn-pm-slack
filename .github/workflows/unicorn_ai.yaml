@@ -1,0 +1,44 @@
+name: Unicorn Brain Automation Tests
+on: push
+
+jobs:
+  unicorn-brain-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Node Installation
+        uses: actions/setup-node@v1
+        with:
+          node-version: '18'
+
+      - name: Global Newman
+        run: |
+          npm install -g newman 
+
+      - name: Run Collection with OAuth2.0
+        env:
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+
+        run: |
+          newman run dev-unicorn-ai.postman_collection.json \
+            -e non-prod.postman_environment.json \
+            --env-var "client_secret=$CLIENT_SECRET"  
+
+      - name: Send HTML Report Link to Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          payload='{
+            "text": "Newman Test Report",
+            "attachments": [
+              {
+                "fallback": "Newman Test Report",
+                "color": "#36a64f",
+                "title": "Unicorn Brain Notification"                
+              }
+            ]
+          }'
+
+          # Send the payload to Slack
+          curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
