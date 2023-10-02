@@ -5,40 +5,41 @@ jobs:
   unicorn-brain-api:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Code
+        uses: actions/checkout@v2
 
-      - name: Node Installation
-        uses: actions/setup-node@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: '14' # Adjust the Node.js version as needed
 
-      - name: Global Newman
+      - name: Install Newman
         run: |
-          npm install -g newman 
+          npm install -g newman
 
-      - name: Run Collection with OAuth2.0
+      - name: Run Postman Tests
         env:
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-
         run: |
           newman run dev-unicorn-ai.postman_collection.json \
             -e non-prod.postman_environment.json \
-            --env-var "client_secret=$CLIENT_SECRET"  
+            --env-var "client_secret=$CLIENT_SECRET"
 
-      - name: Send HTML Report Link to Slack
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Create Status Check based on Postman Results
+        id: process-postman
+        uses: im-open/process-postman-test-results@v2.1.5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          results-file: ${{ github.workspace }}/newman/dev-unicorn-ai.postman_collection.json # Update the path as needed
+          report-name: 'Postman ${{ github.run_number }}'
+          create-status-check: true
+          create-pr-comment: false
+          update-comment-if-one-exists: false
+          ignore-test-failures: true
+          timezone: 'america/denver'
+
+      - name: Fail on Test Failures
+        if: steps.process-postman.outputs.test-outcome == 'Failed'
         run: |
-          payload='{
-            "text": "Newman Test Report",
-            "attachments": [
-              {
-                "fallback": "Newman Test Report",
-                "color": "#36a64f",
-                "title": "Unicorn Brain Notification"                
-              }
-            ]
-          }'
-
-          # Send the payload to Slack
-          curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
+          echo "There were Postman test failures."
+          exit 1
