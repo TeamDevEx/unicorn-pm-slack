@@ -16,7 +16,9 @@ jobs:
       - name: Install Newman
         run: |
           npm install -g newman
-          npm install -g newman-reporter-htmlextra
+          
+      - name: Install Newman Reporter
+        run: npm install -g newman-reporter-htmlextra       
 
       - name: Run Postman Tests
         env:
@@ -41,7 +43,7 @@ jobs:
           timezone: 'america/denver'
 
       - name: Fail on Test Failures
-        if: steps.process-postman.outputs.test-outcome == 'Failed'
+        if: steps.process-postman.outcome == 'failure'
         run: |
           echo "There were Postman test failures."
           exit 1
