@@ -1,31 +1,15 @@
-name: Unicorn Brain Automation Tests
-on: push
+name: Hello POGS
+
+on: [push]
 
 jobs:
-  unicorn-brain-api:
+  hello:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18' 
-
-      - name: Install Newman
-        run: |
-          npm install -g newman
-          
-      - name: Install Newman Reporter
-        run: npm install -g newman-reporter-htmlextra       
-
-      - name: Run Postman Tests
-        env:
-          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-        run: |
-          newman run dev-unicorn-ai.postman_collection.json \
-            -e non-prod.postman_environment.json \
-            --env-var "client_secret=$CLIENT_SECRET" 
-
-          
+    - name: Print Hello POGS!
+      run: |
+        echo "HELLO POGS!"
