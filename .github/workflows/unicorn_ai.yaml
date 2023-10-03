@@ -11,7 +11,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18' # Adjust the Node.js version as needed
+          node-version: '18' 
 
       - name: Install Newman
         run: |
@@ -26,28 +26,6 @@ jobs:
         run: |
           newman run dev-unicorn-ai.postman_collection.json \
             -e non-prod.postman_environment.json \
-            --env-var "client_secret=$CLIENT_SECRET" \
-            --reporters json --reporter-json-export result.json  
-
-      - name: Create Status Check based on Postman Results
-        id: process-postman
-        uses: im-open/process-postman-test-results@v2.1.5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          results-file: result.json
-          report-name: 'Postman ${{ github.run_number }}'
-          create-status-check: true
-          create-pr-comment: false
-          update-comment-if-one-exists: false
-          ignore-test-failures: true
-          timezone: 'america/denver'
-
-      - name: Fail on Test Failures
-        if: steps.process-postman.outcome == 'failure'
-        run: |
-          echo "There were Postman test failures."
-          exit 1
-
-
+            --env-var "client_secret=$CLIENT_SECRET" 
 
           
